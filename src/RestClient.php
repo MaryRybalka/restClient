@@ -3,12 +3,12 @@
 namespace Client;
 use Client\Response;
 
-class Client
+class RestClient
 {
-    private string $baseURL="";
+    private string $baseURL;
 
     public function __construct(string $baseURL) {
-        $this->$baseURL = $baseURL;
+        $this->baseURL = $baseURL;
     }
 
     public function isRegistered(string $email, string $password){
@@ -31,7 +31,7 @@ class Client
         try {
             $response = curl_exec($request);
             if (gettype($response) == "boolean")
-                return new Response("{'status': '407','message' => 'Bad URL',}");
+                return new Response("{\"status\"': \"407\",\"message\": \"Bad URL\"}");
         } finally {
             curl_close($request);
         }
@@ -42,7 +42,7 @@ class Client
 
     public function createUser(string $email, string $password) {
         $payload = json_encode([
-            'username' => $email,
+            'email' => $email,
             'password' => $password],
             JSON_UNESCAPED_UNICODE);
         $request = curl_init();
@@ -61,17 +61,18 @@ class Client
         try {
             $response = curl_exec($request);
             if (gettype($response) == "boolean")
-                return new Response("{'status': '407','message' => 'Bad URL',}");
+                return new Response("{\"status\"': \"407\",\"message\": \"Bad URL\"}");
         } finally {
             curl_close($request);
         }
+        $res = json_encode($response);
 
-        return new Response($response);
+        return new Response($res);
     }
 
     public function getToDos(string $email, string $password) {
         $payload = json_encode([
-            'username' => $email,
+            'email' => $email,
             'password' => $password],
             JSON_UNESCAPED_UNICODE);
 
@@ -91,7 +92,7 @@ class Client
         try {
             $response = curl_exec($request);
             if (gettype($response) == "boolean")
-                return new Response("{'status': '407','message' => 'Bad URL',}");
+                return new Response("{\"status\"': \"407\",\"message\": \"Bad URL\"}");
         } finally {
             curl_close($request);
         }
@@ -101,7 +102,7 @@ class Client
 
     public function createToDo(string $email, string $password, string $title, string $description) {
         $payload = json_encode([
-            'username' => $email,
+            'email' => $email,
             'password' => $password,
             'title' => $title,
             'description' => $description],
@@ -123,7 +124,7 @@ class Client
         try {
             $response = curl_exec($request);
             if (gettype($response) == "boolean")
-                return new Response("{'status': '407','message' => 'Bad URL',}");
+                return new Response("{\"status\"': \"407\",\"message\": \"Bad URL\"}");
         } finally {
             curl_close($request);
         }
@@ -133,7 +134,7 @@ class Client
 
     public function updateToDo(int $id, string $email, string $password, string $title, string $description) {
         $payload = json_encode([
-            'username' => $email,
+            'email' => $email,
             'password' => $password,
             'title' => $title,
             'description' => $description],
@@ -155,7 +156,7 @@ class Client
         try {
             $response = curl_exec($request);
             if (gettype($response) == "boolean")
-                return new Response("{'status': '407','message' => 'Bad URL',}");
+                return new Response("{\"status\"': \"407\",\"message\": \"Bad URL\"}");
         } finally {
             curl_close($request);
         }
@@ -165,7 +166,7 @@ class Client
 
     public function deleteToDo(int $id, string $email, string $password) {
         $payload = json_encode([
-            'username' => $email,
+            'email' => $email,
             'password' => $password],
             JSON_UNESCAPED_UNICODE);
 
@@ -185,7 +186,7 @@ class Client
         try {
             $response = curl_exec($request);
             if (gettype($response) == "boolean")
-                return new Response("{'status': '407','message' => 'Bad URL',}");
+                return new Response("{\"status\"': \"407\",\"message\": \"Bad URL\"}");
         } finally {
             curl_close($request);
         }

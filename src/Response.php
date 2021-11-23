@@ -15,13 +15,16 @@ class Response {
     }
 
     public function __construct($response) {
-        $result = json_encode($response);
-        if ($result['status']) {
-            $this->status = $result['status'];
-            $this->message = $result['message'];
+        $result = json_decode($response);
+
+        if (getType($result) == "string") $result = json_decode($result);
+
+        if ($result->status) {
+            $this->status = $result->status;
+            $this->message = $result->message;
         } else {
             $this->status = '200';
-            $this->message = $result;
+            $this->message = $response;
         }
     }
 
@@ -30,6 +33,6 @@ class Response {
      */
     public function __toString(): string
     {
-        return "{\n\"status\":\"".$this->status."\",\n\"status\":\"".$this->message."\"\n}";
+        return "{\"status\":\"".$this->status."\", \"message\":\"".$this->message."\"}";
     }
 }
