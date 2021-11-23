@@ -5,250 +5,191 @@ use Client\Response;
 
 class Client
 {
-    private string $baseURL;
+    private string $baseURL="";
 
     public function __construct(string $baseURL) {
         $this->$baseURL = $baseURL;
     }
 
-    public function registration(string $username, string $password) {
-        $data = json_encode(['username' => $username, 'password' => $password], JSON_UNESCAPED_UNICODE);
+    public function isRegistered(string $email, string $password){
+        $payload = json_encode([
+            'email' => $email,
+            'password' => $password],
+            JSON_UNESCAPED_UNICODE);
         $request = curl_init();
-        curl_setopt_array(
-            $request,
-            array(
-                CURLOPT_RETURNTRANSFER => true,  //return string in case of success
-                CURLOPT_URL => $this->apiURL.'/registration',
-                CURLOPT_HTTPHEADER => array(
-                    'Content-type: application/json',
-                    'Content-Length: '.strlen($data)
-                ),
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS => $data
-            ));
-
-        try {
-            $data = curl_exec($request);
-            $http_code = curl_getinfo($request, CURLINFO_RESPONSE_CODE);
-        } finally {
-            curl_close($request);
-        }
-
-        return new ResponseResult($http_code, $data);
-    }
-
-    public function auth(string $username, string $password) {
-        $data = json_encode(['username' => $username, 'password' => $password], JSON_UNESCAPED_UNICODE);
-        $request = curl_init();
-        curl_setopt_array(
-            $request,
-            array(
-                CURLOPT_RETURNTRANSFER => true,  //return string in case of success
-                CURLOPT_URL => $this->apiURL.'/api/login_check',
-                CURLOPT_HTTPHEADER => array(
-                    'Content-Type: application/json',
-                    'Content-Length: '.strlen($data)
-                ),
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS => $data
-            ));
-
-        try {
-            $data = curl_exec($request);
-            $http_code = curl_getinfo($request, CURLINFO_RESPONSE_CODE);
-        } finally {
-            curl_close($request);
-        }
-
-        return new ResponseResult($http_code, $data);
-    }
-
-    public function getTodoList() {
-        $request = curl_init();
-        curl_setopt_array(
-            $request,
-            array(
-                CURLOPT_RETURNTRANSFER => true,  //return string in case of success
-                CURLOPT_URL => $this->apiURL.'/todo/',
-                CURLOPT_HTTPHEADER => array('JWT-Token: '.$this->jwtToken),
-                CURLOPT_CUSTOMREQUEST => 'GET'
-            ));
-
-        try {
-            $data = curl_exec($request);
-            $http_code = curl_getinfo($request, CURLINFO_RESPONSE_CODE);
-        } finally {
-            curl_close($request);
-        }
-
-        return new ResponseResult($http_code, $data);
-    }
-
-    public function createItem(string $name, string $description) {
-        $data = json_encode(['name' => $name, 'description' => $description], JSON_UNESCAPED_UNICODE);
-        $request = curl_init();
-        curl_setopt_array(
-            $request,
-            array(
-                CURLOPT_RETURNTRANSFER => true,  //return string in case of success
-                CURLOPT_URL => $this->apiURL.'/todo/',
-                CURLOPT_HTTPHEADER => array(
-                    'Content-Type: application/json',
-                    'Content-Length: '.strlen($data),
-                    'JWT-Token: '.$this->jwtToken
-                ),
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS => $data
-            ));
-
-        try {
-            $data = curl_exec($request);
-            $http_code = curl_getinfo($request, CURLINFO_RESPONSE_CODE);
-        } finally {
-            curl_close($request);
-        }
-
-        return new ResponseResult($http_code, $data);
-    }
-
-    public function itemRemove(int $id) {
-        $request = curl_init();
-        curl_setopt_array(
-            $request,
-            array(
-                CURLOPT_RETURNTRANSFER => true,  //return string in case of success
-                CURLOPT_URL => $this->apiURL.'/todo/'.$id,
-                CURLOPT_HTTPHEADER => array('JWT-Token: '.$this->jwtToken),
-                CURLOPT_CUSTOMREQUEST => 'DELETE'
-            ));
-
-        try {
-            $data = curl_exec($request);
-            $http_code = curl_getinfo($request, CURLINFO_RESPONSE_CODE);
-        } finally {
-            curl_close($request);
-        }
-
-        return new ResponseResult($http_code, $data);
-    }
-
-    public function itemUpdate(int $id, string $name, string $description, bool $isDone) {
-        $data = json_encode(['name' => $name, 'description' => $description, 'isDone' => $isDone], JSON_UNESCAPED_UNICODE);
-        $request = curl_init();
-        curl_setopt_array(
-            $request,
-            array(
-                CURLOPT_RETURNTRANSFER => true,  //return string in case of success
-                CURLOPT_URL => $this->apiURL.'/todo/'.$id,
-                CURLOPT_HTTPHEADER => array(
-                    'Content-Type: application/json',
-                    'Content-Length: '.strlen($data),
-                    'JWT-Token: '.$this->jwtToken
-                ),
-                CURLOPT_CUSTOMREQUEST => 'PUT',
-                CURLOPT_POSTFIELDS => $data
-            ));
-
-        try {
-            $data = curl_exec($request);
-            $http_code = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-        } finally {
-            curl_close($request);
-        }
-
-        return new ResponseResult($http_code, $data);
-    }
-
-    public function uploadFile(string $saveName, string $filePath) {
-        if(!file_exists(realpath($filePath))) {
-            throw new Exception('File did not exist');
-        }
-
-        $request = curl_init();
-
-        curl_setopt_array(
-            $request,
-            array(
-                CURLOPT_RETURNTRANSFER => true,  //return string in case of success
-                CURLOPT_URL => $this->apiURL.'/file/'.$saveName,
-                CURLOPT_HTTPHEADER => array(
-                    'JWT-Token: '.$this->jwtToken,
-                ),
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS => array('file' => new CurlFile($filePath))
-            )
+        $defaults = array(
+            CURLOPT_RETURNTRANSFER => true,  //return string in case of success
+            CURLOPT_URL => $this->baseURL.'/user',
+            CURLOPT_HTTPHEADER => array(
+                'Content-type: application/json',
+                'Content-Length: '.strlen($payload)
+            ),
+            CURLOPT_CUSTOMREQUEST => 'GET'
         );
+        curl_setopt_array($request, $defaults);
 
         try {
-            $data = curl_exec($request);
-            $http_code = curl_getinfo($request, CURLINFO_RESPONSE_CODE);
+            $response = curl_exec($request);
+            if (gettype($response) == "boolean")
+                return new Response("{'status': '407','message' => 'Bad URL',}");
         } finally {
             curl_close($request);
         }
 
-        return new ResponseResult($http_code, $data);
+        $result = new Response($response);
+        return $result->getStatus() == '200';
     }
 
-    public function getFilesList() {
+    public function createUser(string $email, string $password) {
+        $payload = json_encode([
+            'username' => $email,
+            'password' => $password],
+            JSON_UNESCAPED_UNICODE);
         $request = curl_init();
-        curl_setopt_array(
-            $request,
-            array(
-                CURLOPT_RETURNTRANSFER => true,  //return string in case of success
-                CURLOPT_URL => $this->apiURL.'/file/',
-                CURLOPT_HTTPHEADER => array('JWT-Token: '.$this->jwtToken),
-                CURLOPT_CUSTOMREQUEST => 'GET'
-            ));
+        $defaults = array(
+            CURLOPT_RETURNTRANSFER => true,  //return string in case of success
+            CURLOPT_URL => $this->baseURL.'/user',
+            CURLOPT_HTTPHEADER => array(
+                'Content-type: application/json',
+                'Content-Length: '.strlen($payload)
+            ),
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $payload
+        );
+        curl_setopt_array($request, $defaults);
 
         try {
-            $data = curl_exec($request);
-            $http_code = curl_getinfo($request, CURLINFO_RESPONSE_CODE);
+            $response = curl_exec($request);
+            if (gettype($response) == "boolean")
+                return new Response("{'status': '407','message' => 'Bad URL',}");
         } finally {
             curl_close($request);
         }
 
-        return new ResponseResult($http_code, $data);
+        return new Response($response);
     }
 
-    public function getFile(int $fileId) {
+    public function getToDos(string $email, string $password) {
+        $payload = json_encode([
+            'username' => $email,
+            'password' => $password],
+            JSON_UNESCAPED_UNICODE);
+
         $request = curl_init();
-        curl_setopt_array(
-            $request,
-            array(
-                CURLOPT_RETURNTRANSFER => true,  //return string in case of success
-                CURLOPT_URL => $this->apiURL.'/file/'.$fileId,
-                CURLOPT_HTTPHEADER => array('JWT-Token: '.$this->jwtToken),
-                CURLOPT_CUSTOMREQUEST => 'GET'
-            ));
+        $defaults = array(
+            CURLOPT_RETURNTRANSFER => true,  //return string in case of success
+            CURLOPT_URL => $this->baseURL.'/todo',
+            CURLOPT_HTTPHEADER => array(
+                'Content-type: application/json',
+                'Content-Length: '.strlen($payload)
+            ),
+            CURLOPT_CUSTOMREQUEST => 'GET',
+            CURLOPT_POSTFIELDS => $payload
+        );
+        curl_setopt_array($request, $defaults);
 
         try {
-            $data = curl_exec($request);
-            $http_code = curl_getinfo($request, CURLINFO_RESPONSE_CODE);
+            $response = curl_exec($request);
+            if (gettype($response) == "boolean")
+                return new Response("{'status': '407','message' => 'Bad URL',}");
         } finally {
             curl_close($request);
         }
 
-        return new ResponseResult($http_code, $data);
+        return new Response($response);
     }
 
-    public function deleteFile(int $fileId) {
+    public function createToDo(string $email, string $password, string $title, string $description) {
+        $payload = json_encode([
+            'username' => $email,
+            'password' => $password,
+            'title' => $title,
+            'description' => $description],
+            JSON_UNESCAPED_UNICODE);
+
         $request = curl_init();
-        curl_setopt_array(
-            $request,
-            array(
-                CURLOPT_RETURNTRANSFER => true,  //return string in case of success
-                CURLOPT_URL => $this->apiURL.'/file/'.$fileId,
-                CURLOPT_HTTPHEADER => array('JWT-Token: '.$this->jwtToken),
-                CURLOPT_CUSTOMREQUEST => 'DELETE'
-            ));
+        $defaults = array(
+            CURLOPT_RETURNTRANSFER => true,  //return string in case of success
+            CURLOPT_URL => $this->baseURL.'/todo',
+            CURLOPT_HTTPHEADER => array(
+                'Content-type: application/json',
+                'Content-Length: '.strlen($payload)
+            ),
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $payload
+        );
+        curl_setopt_array($request, $defaults);
 
         try {
-            $data = curl_exec($request);
-            $http_code = curl_getinfo($request, CURLINFO_RESPONSE_CODE);
+            $response = curl_exec($request);
+            if (gettype($response) == "boolean")
+                return new Response("{'status': '407','message' => 'Bad URL',}");
         } finally {
             curl_close($request);
         }
 
-        return new ResponseResult($http_code, $data);
+        return new Response($response);
+    }
+
+    public function updateToDo(int $id, string $email, string $password, string $title, string $description) {
+        $payload = json_encode([
+            'username' => $email,
+            'password' => $password,
+            'title' => $title,
+            'description' => $description],
+            JSON_UNESCAPED_UNICODE);
+
+        $request = curl_init();
+        $defaults = array(
+            CURLOPT_RETURNTRANSFER => true,  //return string in case of success
+            CURLOPT_URL => $this->baseURL.'/todo/'.$id,
+            CURLOPT_HTTPHEADER => array(
+                'Content-type: application/json',
+                'Content-Length: '.strlen($payload)
+            ),
+            CURLOPT_CUSTOMREQUEST => 'PUT',
+            CURLOPT_POSTFIELDS => $payload
+        );
+        curl_setopt_array($request, $defaults);
+
+        try {
+            $response = curl_exec($request);
+            if (gettype($response) == "boolean")
+                return new Response("{'status': '407','message' => 'Bad URL',}");
+        } finally {
+            curl_close($request);
+        }
+
+        return new Response($response);
+    }
+
+    public function deleteToDo(int $id, string $email, string $password) {
+        $payload = json_encode([
+            'username' => $email,
+            'password' => $password],
+            JSON_UNESCAPED_UNICODE);
+
+        $request = curl_init();
+        $defaults = array(
+            CURLOPT_RETURNTRANSFER => true,  //return string in case of success
+            CURLOPT_URL => $this->baseURL.'/todo/'.$id,
+            CURLOPT_HTTPHEADER => array(
+                'Content-type: application/json',
+                'Content-Length: '.strlen($payload)
+            ),
+            CURLOPT_CUSTOMREQUEST => 'DELETE',
+            CURLOPT_POSTFIELDS => $payload
+        );
+        curl_setopt_array($request, $defaults);
+
+        try {
+            $response = curl_exec($request);
+            if (gettype($response) == "boolean")
+                return new Response("{'status': '407','message' => 'Bad URL',}");
+        } finally {
+            curl_close($request);
+        }
+
+        return new Response($response);
     }
 }
