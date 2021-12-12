@@ -193,4 +193,50 @@ class RestClient
 
         return new Response($response);
     }
+
+
+    public function getFiles() {
+        $request = curl_init();
+        $defaults = array(
+            CURLOPT_RETURNTRANSFER => true,  //return string in case of success
+            CURLOPT_URL => $this->baseURL.'/files/',
+            CURLOPT_CUSTOMREQUEST => 'GET'
+        );
+        curl_setopt_array($request, $defaults);
+
+        try {
+            $response = curl_exec($request);
+            if (gettype($response) == "boolean")
+                return new Response("{\"status\"': \"407\",\"message\": \"Bad URL\"}");
+        } finally {
+            curl_close($request);
+        }
+
+        return new Response($response);
+    }
+
+    public function addFile(string $name, string $path) {
+        if(!file_exists(realpath($path))) {
+            return new Response("{\"status\"': \"409\",\"message\": \"No such file\"}");
+        }
+
+        $request = curl_init();
+        $defaults = array(
+            CURLOPT_RETURNTRANSFER => true,  //return string in case of success
+            CURLOPT_URL => $this->baseURL.'/files/'.$name,
+            CURLOPT_CUSTOMREQUEST => 'POST'
+        );
+        curl_setopt_array($request, $defaults);
+
+        try {
+            $response = curl_exec($request);
+            if (gettype($response) == "boolean")
+                return new Response("{\"status\"': \"407\",\"message\": \"Bad URL\"}");
+        } finally {
+            curl_close($request);
+        }
+
+        return new Response($response);
+    }
+
 }
