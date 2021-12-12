@@ -14,3 +14,4 @@ echo($client->getFiles());
 echo($client->addFile("newFromClient", "/home/masha/PhpstormProjects/client/src/img/meme-pop-cat-pack.png"));
 echo($client->getFileById(3));
 echo($client->deleteFile(1));
+echo($client->deleteFile(3));

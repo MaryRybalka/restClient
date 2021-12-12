@@ -219,18 +219,13 @@ class RestClient
         if(!file_exists(realpath($file))) {
             return new Response("{\"status\"': \"409\",\"message\": \"No such file\"}");
         }
-        $payload = json_encode([
-            'file' => new \CURLFile($file)],
-            JSON_UNESCAPED_UNICODE);
+        $payload = [
+            'file' => new \CURLFile($file)];
 
         $request = curl_init();
         $defaults = array(
             CURLOPT_RETURNTRANSFER => true,  //return string in case of success
             CURLOPT_URL => $this->baseURL.'/files/'.$name,
-            CURLOPT_HTTPHEADER => array(
-                'Content-type: application/json',
-                'Content-Length: '.strlen($payload)
-            ),
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => $payload
         );
